@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Score - Code Quiz Challenge</title>
+ 
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  
+  <link rel="stylesheet" href="../styles/score.css">
+  
+  
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  
+  
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+  
+  <script src="../scripts/auth.js"></script>
+  
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  
+  <script src="../scripts/theme.js"></script>
+  
+  <style>
+    .btn-container {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .btn:hover {
+      background-color: #45a049;
+    }
+    
+    #logout-btn {
+      background-color: #f44336;
+    }
+    
+    #logout-btn:hover {
+      background-color: #da190b;
+    }
+    
+    /* DataTables için ek stil ayarlamaları */
+    .dataTables_wrapper {
+      padding: 20px 0;
+    }
+    
+    .dataTables_filter input {
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    
+    .dataTables_length select {
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    
+    .dataTables_info, .dataTables_paginate {
+      margin-top: 15px;
+    }
+    
+    .paginate_button {
+      padding: 5px 10px;
+      margin: 0 2px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .paginate_button.current {
+      background-color: #4CAF50;
+      color: white;
+    }
+    
+    /* Score bilgi kartı */
+    .stats-card {
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 15px;
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-around;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #4CAF50;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+      margin-top: 5px;
+    }
+    
+    /* Skor filtre seçenekleri */
+    .filter-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    
+    .filter-btn {
+      padding: 8px 15px;
+      background-color: #eee;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .filter-btn.active {
+      background-color: #4CAF50;
+      color: white;
+      border-color: #4CAF50;
+    }
+  </style>
+  <script>
+    
+    function parseTurkishDate(dateStr) {
+      const [dayPart, timePart] = dateStr.split(" ");
+      const [day, month, year] = dayPart.split(".");
+      const [hour, minute, second] = timePart.split(":");
+      return new Date(
+        parseInt(year, 10),
+        parseInt(month, 10) - 1,
+        parseInt(day, 10),
+        parseInt(hour, 10),
+        parseInt(minute, 10),
+        parseInt(second, 10)
+      );
+    }
+
+    $(document).ready(function() {
+      const currentUser = localStorage.getItem("currentUser");
+     
+      $("#logout-btn").on("click", function() {
+        localStorage.removeItem("currentUser");
+        window.location.href = "login.html";
+      });
+      
+      
+      function showStatistics() {
+        const scores = JSON.parse(localStorage.getItem("scores")) || [];
+        
+        if (scores.length === 0) {
+          return;
+        }
+        
+       
+        const totalQuizzes = scores.length;
+        const uniqueUsers = [...new Set(scores.map(s => s.username))].length;
+        
+        let totalScore = 0;
+        let highestScore = 0;
+        let averagePercent = 0;
+        
+        scores.forEach(score => {
+          totalScore += score.score;
+          if (score.score > highestScore) {
+            highestScore = score.score;
+          }
+        });
+        
+        const averageScore = (totalScore / totalQuizzes).toFixed(1);
+        averagePercent = (totalScore / scores.reduce((sum, s) => sum + s.total, 0) * 100).toFixed(1);
+        
+       
+        const statsCard = $(`
+          <div class="stats-card">
+            <div class="stat-item">
+              <div class="stat-value">${totalQuizzes}</div>
+              <div class="stat-label">Total Quiz</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">${uniqueUsers}</div>
+              <div class="stat-label">Unique Users</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">${averageScore}</div>
+              <div class="stat-label">Average Score</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">%${averagePercent}</div>
+              <div class="stat-label">Success Rate</div>
+            </div>
+          </div>
+        `);
+        
+        // Filtre butonlarını ekle
+        const filterOptions = $(`
+          <div class="filter-options">
+            <div class="filter-btn" data-filter="all">All Scores</div>
+            <div class="filter-btn active" data-filter="me">My Scores</div>
+          </div>
+        `);
+        
+        
+        if ($('.statistics-container').length === 0) {
+          $('.score-table').before('<div class="statistics-container"></div>');
+        }
+        
+        // İstatistik ve filtre elemanlarını ekle
+        $('.statistics-container').empty().append(statsCard).append(filterOptions);
+        
+        
+        $('.filter-btn').on('click', function() {
+          $('.filter-btn').removeClass('active');
+          $(this).addClass('active');
+          
+          const filter = $(this).data('filter');
+          displayScores(filter);
+        });
+      }
+
+      function displayScores(filter = 'all') {
+        const scores = JSON.parse(localStorage.getItem("scores")) || [];
+        
+       
+        if ($.fn.DataTable.isDataTable('#score-table')) {
+          $('#score-table').DataTable().destroy();
+        }
+        
+        
+        $("#score-list").empty();
+
+       
+        let filteredScores = [...scores];
+        
+       
+        if (filter !== 'all') {
+          const now = new Date();
+          const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const weekStart = new Date(today);
+          weekStart.setDate(today.getDate() - today.getDay());
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          
+          switch (filter) {
+            case 'today':
+              filteredScores = scores.filter(score => {
+                const scoreDate = parseTurkishDate(score.date);
+                return scoreDate >= today;
+              });
+              break;
+            case 'week':
+              filteredScores = scores.filter(score => {
+                const scoreDate = parseTurkishDate(score.date);
+                return scoreDate >= weekStart;
+              });
+              break;
+            case 'month':
+              filteredScores = scores.filter(score => {
+                const scoreDate = parseTurkishDate(score.date);
+                return scoreDate >= monthStart;
+              });
+              break;
+            case 'me':
+              filteredScores = scores.filter(score => score.username === currentUser);
+              break;
+          }
+        }
+        
+        // Sıralama
+        filteredScores.sort((a, b) => {
+          if (b.score !== a.score) {
+            return b.score - a.score; 
+          }
+          const dateA = parseTurkishDate(a.date);
+          const dateB = parseTurkishDate(b.date);
+          return dateB - dateA;
+        });
+
+      
+        filteredScores.forEach(score => {
+         
+          const isCurrentUser = score.username === currentUser;
+          const highlightClass = isCurrentUser ? 'current-user-score' : '';
+          
+          $("#score-list").append(`
+            <tr class="${highlightClass}">
+              <td>${score.username}</td>
+              <td>${score.score}/${score.total}</td>
+              <td>${score.date}</td>
+            </tr>
+          `);
+        });
+
+        if (filteredScores.length === 0) {
+          $("#score-list").append(`
+            <tr>
+              <td colspan="3" style="text-align: center;">No score records found yet.</td>
+            </tr>
+          `);
+        }
+        
+        
+        $('#score-table').DataTable({
+          paging: true,
+          searching: true,
+          ordering: true,
+          info: true,
+          pageLength: 10,
+          lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Tümü"]],
+          language: {
+            search: "Search:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "No entries available",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            paginate: {
+              first: "«",
+              last: "»",
+              next: "›",
+              previous: "‹"
+            }
+          },
+          // Sütun tanımlarını ekleyerek sütun sayılarının uyumlu olmasını sağla
+          columns: [
+            { data: "username" }, // Username sütunu
+            { data: "score" },    // Score sütunu
+            { data: "date" }      // Date sütunu
+          ]
+        });
+      }
+      
+    
+      showStatistics();
+      displayScores();
+      
+     
+      $("#refresh-btn").on("click", function() {
+        showStatistics();
+        displayScores();
+      });
+    });
+  </script>
+</head>
+<body>
+  <header>
+    <h1>Code Quiz Challenge</h1>
+    <nav>
+      <ul>
+        <li><a href="about.html">About</a></li>
+        <li><a href="quiz.html">Quiz</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="score.html">Score</a></li>
+        <li><a href="messages.html">Messages</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <main>
+    <div class="score-container">
+      <h2>Scoreboard</h2>
+      <p>
+        This table lists the scores of users who participated in the quiz. 
+        The highest score appears at the top, and if scores are equal, the most recent date is sorted first.
+      </p>
+      
+      
+      <div class="statistics-container"></div>
+      
+      <table class="score-table" id="score-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Score</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="score-list">
+        
+        </tbody>
+      </table>
+
+     
+      <div class="btn-container">
+        <a href="quiz.html" class="btn">Return to Quiz</a>
+        <button id="refresh-btn" class="btn">Refresh Scores</button>
+        <button id="logout-btn" class="btn">Logout</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Code Quiz Challenge</p>
+  </footer>
+</body>
+</html>

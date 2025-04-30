@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz - Code Quiz Challenge</title>
+  
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="../styles/quiz.css">
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+  
+ 
+  <script src="../scripts/auth.js"></script>
+  
+  
+  <script src="../scripts/theme.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Code Quiz Challenge</h1>
+    <nav>
+      <ul>
+        <li><a href="about.html">About</a></li>
+        <li><a href="quiz.html">Quiz</a></li>
+        <li><a href="contact.html">Contact</a></li>
+        <li><a href="score.html">Score</a></li>
+        <li><a href="messages.html">Messages</a></li>
+      </ul>
+    </nav>
+  </header>
+  
+  <div id="quiz-container">
+    <div class="score-display">
+      Score: <span id="current-score">0</span>
+    </div>
+ 
+    <div id="timer-display" style="text-align: center; font-size: 1.2rem; margin-bottom: 10px;">
+      Time remaining: 20 seconds
+    </div>
+    <div id="start-quiz">
+      <h1>Welcome to the Quiz!</h1>
+      <p>Click the button to start.</p>
+    
+      <button id="start-btn" disabled>Start Quiz</button>
+    </div>
+    <div id="question-box" style="display: none;">
+      <h2 id="question"></h2>
+   
+      <div id="code-editor" style="display: none;">
+        <textarea id="code-input" rows="10" style="width: 100%; font-family: monospace;"></textarea>
+        <button id="run-code">Run Code</button>
+        <div id="code-output"></div>
+      </div>
+    </div>
+    <div id="options" style="display: none;"></div>
+    <button id="next-btn" disabled style="display: none;">Next Question</button>
+  </div>
+  
+
+  <div id="dialog" title="Result" style="display: none;">
+    <p id="dialog-message"></p>
+  </div>
+  
+  <footer>
+    <p>© 2025 Code Quiz Challenge</p>
+  </footer>
+
+  <script>
+    $(document).ready(function(){
+      let multipleChoiceQuestions = [];
+      let codingQuestions = [];
+      let currentQuestionIndex = 0;
+      let isMultipleChoicePhase = true;
+      let score = 0;
+      let timerInterval;
+      let timeLeft = 20;
+
+    
+      $.ajax({
+        url: " ../data/questions.json",
+        dataType: "json",
+        success: function(response) {
+          multipleChoiceQuestions = response.multipleChoice;
+          codingQuestions = response.coding;
+          $("#start-btn").prop("disabled", false);
+          console.log("Questions loaded");
+        },
+        error: function() {
+          alert("Error loading questions. Please refresh the page.");
+        }
+      });
+      
+     
+      function startTimer() {
+        timeLeft = 20;
+        $("#timer-display").text("Time remaining: " + timeLeft + " seconds");
+        timerInterval = setInterval(function(){
+          timeLeft--;
+          $("#timer-display").text("Time remaining: " + timeLeft + " seconds");
+          if(timeLeft <= 0){
+            clearInterval(timerInterval);
+            $("#options button").prop("disabled", true);
+            $("#dialog-message").text("Time's up! No points for this question. Moving to next question.");
+            $("#dialog").dialog({
+              modal: true,
+              buttons: {
+                "Continue": function(){
+                  $(this).dialog("close");
+                  currentQuestionIndex++;
+                  $("#next-btn").prop("disabled", true);
+                  displayQuestion();
+                }
+              }
+            });
+          }
+        }, 1000);
+      }
+
+     
+      function startCodingTimer() {
+        timeLeft = 60;
+        $("#timer-display").text("Time remaining: " + timeLeft + " seconds");
+        timerInterval = setInterval(function(){
+          timeLeft--;
+          $("#timer-display").text("Time remaining: " + timeLeft + " seconds");
+          if(timeLeft <= 0){
+            clearInterval(timerInterval);
+            $("#code-input").prop("disabled", true);
+            $("#run-code").prop("disabled", true);
+            $("#code-output").html('<div style="color: red;">Time\'s up! No points for this question.</div>');
+            
+            setTimeout(() => {
+              currentQuestionIndex++;
+              $("#code-input").prop("disabled", false);
+              $("#run-code").prop("disabled", false);
+              displayQuestion();
+            }, 2000);
+          }
+        }, 1000);
+      }
+      
+      
+      $("#start-btn").on("click", function(){
+        if (!multipleChoiceQuestions.length && !codingQuestions.length) {
+          alert("Failed to load questions. Please refresh the page.");
+          return;
+        }
+        $("#start-quiz").hide();
+        $("#question-box").show();
+        $("#options").show();
+        $("#next-btn").show();
+        $("#current-score").text("0");
+        displayQuestion();
+      });
+      
+      
+      function displayQuestion(){
+        clearInterval(timerInterval);
+        
+        if(isMultipleChoicePhase) {
+          if(currentQuestionIndex < multipleChoiceQuestions.length) {
+            let q = multipleChoiceQuestions[currentQuestionIndex];
+            $("#question").text(q.question);
+            $("#options").empty().show();
+            $("#next-btn").show();
+            $("#code-editor").hide();
+            $("#current-score").text(score);
+            startTimer();
+            
+            q.options.forEach(function(option, index){
+              let btn = $("<button></button>")
+                          .text(option)
+                          .attr("data-index", index);
+              btn.on("click", function(){
+                clearInterval(timerInterval);
+                $("#options button").removeClass("selected");
+                $(this).addClass("selected");
+                $("#next-btn").prop("disabled", false);
+              });
+              $("#options").append(btn);
+            });
+          } else {
+            isMultipleChoicePhase = false;
+            currentQuestionIndex = 0;
+            $("#timer-display").show();
+            displayQuestion();
+            return;
+          }
+        } else {
+          if(currentQuestionIndex < codingQuestions.length) {
+            let q = codingQuestions[currentQuestionIndex];
+            $("#question").text(q.question);
+            $("#options").hide();
+            $("#next-btn").hide();
+            $("#code-editor").show();
+            $("#code-input").val(q.startingCode);
+            $("#code-output").empty();
+            $("#timer-display").show();
+            startCodingTimer();
+          } else {
+            $("#quiz-container").html(`
+              <div class="quiz-result">
+                <h2>Quiz Completed!</h2>
+                <p class="final-score">Your Total Score: ${score} / ${multipleChoiceQuestions.length + codingQuestions.length}</p>
+                <div class="result-buttons">
+                  <button onclick="window.location.href='score.html'">View Scoreboard</button>
+                  <button onclick="location.reload()">Try Again</button>
+                </div>
+              </div>
+            `);
+            saveScore(currentUser, score, multipleChoiceQuestions.length + codingQuestions.length);
+          }
+        }
+      }
+      
+      
+      $("#next-btn").on("click", function(){
+        let selected = $("#options button.selected");
+        if(selected.length === 0){
+          alert("Please select an option!");
+          return;
+        }
+        let selectedIndex = parseInt(selected.attr("data-index"));
+        let correctIndex = multipleChoiceQuestions[currentQuestionIndex].answer;
+        if(selectedIndex === correctIndex){
+          score++;
+          $("#current-score").text(score);
+          $("#dialog-message").text("Correct answer! Your score: " + score);
+        } else {
+          $("#dialog-message").text("Wrong answer. Correct answer: " + multipleChoiceQuestions[currentQuestionIndex].options[correctIndex]);
+        }
+        $("#dialog").dialog({
+          modal: true,
+          buttons: {
+            "Continue": function(){
+              $(this).dialog("close");
+              currentQuestionIndex++;
+              $("#next-btn").prop("disabled", true);
+              displayQuestion();
+            }
+          }
+        });
+      });
+      
+    
+      $("#run-code").on("click", function() {
+        clearInterval(timerInterval);
+        const q = codingQuestions[currentQuestionIndex];
+        let userCode = $("#code-input").val().trim();
+        
+        if (!userCode.endsWith("}")) {
+          $("#code-output").html('<div style="color: red;">Error: Incomplete function definition. Make sure to add the closing brace "}"</div>');
+          setTimeout(() => {
+            currentQuestionIndex++;
+            displayQuestion();
+          }, 2000);
+          return;
+        }
+        
+        try {
+          const testFunction = new Function('return ' + userCode)();
+          const testInput = JSON.parse(q.testInput);
+          const result = testFunction(testInput);
+          
+          if(result.toString() === q.expectedOutput) {
+            score++;
+            $("#current-score").text(score);
+            $("#code-output").html('<div style="color: green;">Correct! Moving to next question.</div>');
+            $("#code-input").prop("disabled", true);
+            $("#run-code").prop("disabled", true);
+          } else {
+            $("#code-output").html('<div style="color: red;">Wrong! Moving to next question...</div>');
+          }
+          
+          setTimeout(() => {
+            currentQuestionIndex++;
+            $("#code-input").prop("disabled", false);
+            $("#run-code").prop("disabled", false);
+            displayQuestion();
+          }, 2000);
+          
+        } catch(error) {
+          $("#code-output").html('<div style="color: red;">Error: ' + error.message + '<br>Moving to next question...</div>');
+          setTimeout(() => {
+            currentQuestionIndex++;
+            displayQuestion();
+          }, 2000);
+        }
+      });
+      
+     
+      function saveScore(username, userScore, totalQuestions){
+          let scores = JSON.parse(localStorage.getItem("scores")) || [];
+          scores.push({
+              username: username,
+              score: userScore,
+              total: totalQuestions,
+              date: new Date().toLocaleString()
+          });
+          localStorage.setItem("scores", JSON.stringify(scores));
+      }
+    });
+  </script>
+
+  <style>
+  #code-editor {
+    margin: 20px 0;
+  }
+
+  #code-input {
+    width: 100%;
+    min-height: 200px;
+    font-family: monospace;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  #run-code {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+
+  #run-code:hover {
+    background-color: #45a049;
+  }
+
+  #code-output {
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+  }
+
+  footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+  }
+
+  footer p {
+    margin: 0;
+  }
+
+  
+  #quiz-container {
+    margin-bottom: 60px;
+  }
+  </style>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register - Code Quiz Challenge</title>
+  <link rel="stylesheet" href="../styles/register.css">
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <style>
+    .error-message {
+      color: red;
+      margin-top: 10px;
+    }
+    
+    .success-message {
+      color: green;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Code Quiz Challenge</h1>
+  </header>
+
+  <main>
+    <div class="form-container">
+      <h2>Register</h2>
+      <form id="register-form">
+        <div class="form-group">
+          <label for="username">Username:</label>
+          <input type="text" id="username" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" required>
+        </div>
+        <button type="submit">Register</button>
+      </form>
+      <div id="register-message"></div>
+      <p>If you already have an account, <a href="login.html">Login</a></p>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Code Quiz Challenge</p>
+  </footer>
+
+  <script>
+    $(document).ready(function(){
+      $("#register-form").on("submit", function(e){
+        e.preventDefault();
+        const username = $("#username").val().trim();
+        const password = $("#password").val().trim();
+
+        // Debug için konsola yazdırma
+        console.log("Register attempt:", { username, password });
+
+        let users = JSON.parse(localStorage.getItem("users")) || [];
+        console.log("Current users:", users);
+
+        if (users.some(user => user.username === username)) {
+          $("#register-message")
+            .text("Bu kullanıcı adı zaten kullanılıyor!")
+            .addClass("error-message")
+            .removeClass("success-message");
+          return;
+        }
+
+        users.push({
+          username: username,
+          password: password
+        });
+
+        localStorage.setItem("users", JSON.stringify(users));
+        console.log("Updated users:", JSON.parse(localStorage.getItem("users")));
+
+        $("#register-message")
+          .text("Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...")
+          .removeClass("error-message")
+          .addClass("success-message");
+
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 2000);
+      });
+
+      // Sayfa yüklendiğinde localStorage kontrolü
+      console.log("Initial users in storage:", JSON.parse(localStorage.getItem("users")));
+    });
+  </script>
+</body>
+</html>
