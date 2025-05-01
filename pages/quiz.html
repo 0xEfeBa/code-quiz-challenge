@@ -345,6 +345,12 @@
               };
               console.log("New score to add:", newScore);
               
+              // Total değeri 4 olan yanlış skorları kaydetme
+              if (newScore.total === 4) {
+                  console.log("Preventing invalid score with total=4 from being saved");
+                  return;
+              }
+              
               // Yeni skoru ekleyelim
               scores.push(newScore);
               console.log("Updated scores array:", scores);

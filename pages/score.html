@@ -461,6 +461,10 @@
             console.log("Filtered scores for user:", currentUser, filteredScores.length);
           }
           
+          // Hatalı kayıtları filtrele (total değeri 4 olan skorları gizle, 7 olanları göster)
+          filteredScores = filteredScores.filter(score => score.total !== 4);
+          console.log("After filtering incorrect entries:", filteredScores.length);
+          
           // Skorları sırala: önce puan, sonra tarih
           filteredScores.sort((a, b) => {
             // Skorlar farklıysa büyük olan önce
