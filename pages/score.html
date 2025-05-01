@@ -291,12 +291,14 @@
 
         // Skorları tabloya ekle
         if (filteredScores.length === 0) {
+          // Boş skorlar durumunda - DataTables'a uygun bir tek satır ekleyelim
           $("#score-list").append(`
             <tr>
               <td colspan="3" style="text-align: center;">No score records found yet.</td>
             </tr>
           `);
         } else {
+          // Normal durum
           filteredScores.forEach(score => {
             const isCurrentUser = score.username === currentUser;
             const highlightClass = isCurrentUser ? 'current-user-score' : '';
@@ -311,28 +313,31 @@
           });
         }
         
-        // DataTable'ı başlat
-        $('#score-table').DataTable({
-          paging: true,
-          searching: true,
-          ordering: true,
-          info: true,
-          pageLength: 10,
-          lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Tümü"]],
-          language: {
-            search: "Search:",
-            lengthMenu: "Show _MENU_ entries",
-            info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            infoEmpty: "No entries available",
-            infoFiltered: "(filtered from _MAX_ total entries)",
-            paginate: {
-              first: "«",
-              last: "»",
-              next: "›",
-              previous: "‹"
+        // DataTable yapılandırması - basitleştirilmiş ve sorun çözümlü
+        setTimeout(() => {
+          $('#score-table').DataTable({
+            paging: filteredScores.length > 10, // Skorlar 10'dan azsa sayfalama yapma
+            searching: filteredScores.length > 5, // Skorlar 5'ten azsa arama gösterme
+            ordering: filteredScores.length > 0, // Boşsa sıralama yapma
+            info: filteredScores.length > 0, // Boşsa bilgi kısmını gösterme
+            pageLength: 10,
+            lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Tümü"]],
+            language: {
+              emptyTable: "No score records found yet.",
+              search: "Search:",
+              lengthMenu: "Show _MENU_ entries",
+              info: "Showing _START_ to _END_ of _TOTAL_ entries",
+              infoEmpty: "No entries available",
+              infoFiltered: "(filtered from _MAX_ total entries)",
+              paginate: {
+                first: "«",
+                last: "»",
+                next: "›",
+                previous: "‹"
+              }
             }
-          }
-        });
+          });
+        }, 50); // Küçük bir gecikme, DOM güncellemesinin tamamlanmasını sağlar
       }
       
     
@@ -372,7 +377,7 @@
       
       <div class="statistics-container"></div>
       
-      <table class="score-table" id="score-table">
+      <table class="score-table" id="score-table" width="100%">
         <thead>
           <tr>
             <th>Username</th>
@@ -381,7 +386,10 @@
           </tr>
         </thead>
         <tbody id="score-list">
-        
+          <!-- Tablo içeriği JavaScript tarafından doldurulacak -->
+          <tr>
+            <td colspan="3" style="text-align: center;">Loading scores...</td>
+          </tr>
         </tbody>
       </table>
 
