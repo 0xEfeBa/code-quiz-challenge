@@ -52,7 +52,7 @@
       background-color: #da190b;
     }
     
-    /* DataTables için ek stil ayarlamaları */
+
     .dataTables_wrapper {
       padding: 20px 0;
     }
@@ -85,7 +85,7 @@
       color: white;
     }
     
-    /* Score bilgi kartı */
+   
     .stats-card {
       background-color: #fff;
       border-radius: 5px;
@@ -156,20 +156,20 @@
           
           let day, month, year;
           if (dateStr.includes('/')) {
-            // Amerikan formatlı (MM/DD/YYYY)
+           
             const parts = datePart.split('/');
             month = parseInt(parts[0], 10) - 1;
             day = parseInt(parts[1], 10);
             year = parseInt(parts[2], 10);
           } else {
-            // Türkçe formatlı (DD.MM.YYYY)
+      
             const parts = datePart.split('.');
             day = parseInt(parts[0], 10);
             month = parseInt(parts[1], 10) - 1;
             year = parseInt(parts[2], 10);
           }
           
-          // Saat bilgisi varsa onu ayrıştır
+    
           let hour = 0, minute = 0, second = 0;
           if (timePart) {
             const timeParts = timePart.split(':');
@@ -183,7 +183,7 @@
           return result;
         }
         
-        // Fallback: şimdi
+     
         console.log("Could not parse date, using current time");
         return new Date();
       } catch (e) {
@@ -195,7 +195,7 @@
     $(document).ready(function() {
       const currentUser = localStorage.getItem("currentUser");
       
-      // Debug için localStorage'daki skorları kontrol et
+  
       console.log("Current user:", currentUser);
       
       try {
@@ -216,10 +216,10 @@
         window.location.href = "login.html";
       });
       
-      // Sayfa yüklendiğinde tüm skorları varsayılan olarak göster
+    
       displayScores('all');
 
-      // Filtre butonlarını ekle
+      
       const filterContainer = $(`
         <div class="filter-options" style="margin: 20px 0; text-align: center;">
           <button class="filter-btn active" data-filter="all" style="padding: 8px 15px; margin: 0 5px; border: 1px solid #ddd; background-color: #4CAF50; color: white; border-radius: 20px; cursor: pointer;">All Scores</button>
@@ -247,13 +247,13 @@
         displayScores(filter);
       });
 
-      // Sayfa yenilendiğinde tekrar skorları göster
+  
       $("#refresh-btn").on("click", function() {
-        // localStorage'ı tamamen yeniden okutalım
+   
         try {
           console.log("===== REFRESH BUTTON CLICKED =====");
           
-          // Önce localStorage'dan mevcut skorları kontrol edelim
+      
           const rawScores = localStorage.getItem("scores");
           console.log("Raw scores from localStorage:", rawScores);
           
@@ -264,7 +264,7 @@
           }
           
           try {
-            // localStorage'dan skorları doğru bir şekilde alalım
+         
             const parsedScores = JSON.parse(rawScores);
             
             if (!Array.isArray(parsedScores)) {
@@ -291,24 +291,24 @@
         }
       });
       
-      // Debug düğmesi için işleyici
+   
       $("#debug-btn").on("click", function() {
         try {
           console.log("===== DEBUG BUTTON CLICKED =====");
           
-          // Tüm localStorage içeriğini gösterelim
+        
           console.log("All localStorage keys:");
           Object.keys(localStorage).forEach(key => {
             console.log(`- ${key}: ${localStorage.getItem(key)?.length || 0} chars`);
           });
           
-          // localStorage'dan ham veriyi al
+        
           const rawScores = localStorage.getItem("scores");
           console.log("Raw scores data:", rawScores);
           
           if (!rawScores) {
             console.log("No scores found, creating test data");
-            // Test skorları oluştur ve ekle
+           
             const testScores = [
               {
                 username: currentUser || "test_user",
@@ -318,7 +318,7 @@
               }
             ];
             
-            // localStorage'ı tamamen temizle ve yeni veri ekle
+          
             localStorage.removeItem("scores");
             localStorage.setItem("scores", JSON.stringify(testScores));
             console.log("Added test score to localStorage");
@@ -326,7 +326,7 @@
             return;
           }
           
-          // Veriyi parse et
+       
           let scores;
           try {
             scores = JSON.parse(rawScores);
@@ -359,7 +359,7 @@
             return;
           }
           
-          // Skorları tablo olarak göster
+     
           let tableHTML = "<h3>Debug: Scores in localStorage</h3><table border='1' style='width:100%; margin-top:20px;'>";
           tableHTML += "<tr><th>Username</th><th>Score</th><th>Total</th><th>Date</th></tr>";
           
@@ -374,11 +374,11 @@
           
           tableHTML += "</table>";
           
-          // Sayfaya göster
+        
           const debugDiv = $("<div id='debug-results' style='margin:20px 0; padding:10px; background:#f5f5f5; border:1px solid #ddd;'></div>");
           debugDiv.html(tableHTML);
           
-          // Varsa önceki debug sonuçlarını kaldır
+          
           $("#debug-results").remove();
           $(".table-container").after(debugDiv);
           
@@ -395,17 +395,17 @@
           console.log("Filter:", filter);
           console.log("Current User:", currentUser);
           
-          // Tüm localStorage içeriğini gösterelim
+       
           console.log("All localStorage keys:");
           Object.keys(localStorage).forEach(key => {
             console.log(`- ${key}: ${localStorage.getItem(key)?.length || 0} chars`);
           });
           
-          // localStorage'daki skorları doğrudan al
+        
           let rawScoresData = localStorage.getItem("scores");
           console.log("Raw scores from localStorage:", rawScoresData);
           
-          // Hiç skor yoksa kullanıcıya bilgi ver
+      
           if (!rawScoresData) {
             console.log("No scores data found in localStorage");
             $(".table-container").html(`
@@ -418,7 +418,7 @@
             return;
           }
           
-          // Skorları parse et
+
           let allScores = [];
           try {
             allScores = JSON.parse(rawScoresData);
@@ -439,7 +439,7 @@
               </div>
             `);
             
-            // Reset butonuna tıklandığında skorları sıfırla
+          
             $("#reset-scores").on("click", function() {
               localStorage.removeItem("scores");
               localStorage.setItem("scores", JSON.stringify([]));
@@ -453,40 +453,39 @@
           console.log("Parsed scores:", allScores);
           console.log("Total scores found:", allScores.length);
           
-          // Skorları filtrele
+       
           let filteredScores = [...allScores];
           
           if (filter === 'me' && currentUser) {
             filteredScores = allScores.filter(score => score.username === currentUser);
             console.log("Filtered scores for user:", currentUser, filteredScores.length);
           }
-          
-          // Hatalı kayıtları filtrele (total değeri 4 olan skorları gizle, 7 olanları göster)
+
           filteredScores = filteredScores.filter(score => score.total !== 4);
           console.log("After filtering incorrect entries:", filteredScores.length);
           
-          // Skorları sırala: önce puan, sonra tarih
+        
           filteredScores.sort((a, b) => {
-            // Skorlar farklıysa büyük olan önce
+          
             if (a.score !== b.score) {
               return b.score - a.score;
             }
             
-            // Skorlar aynıysa, daha yeni olan önce 
+         
             try {
-              // Tarih nesnesi oluşturmayı dene
+         
               return new Date(b.date) - new Date(a.date);
             } catch (e) {
-              // Tarih nesnesi oluşturulamazsa sıralamayı korur
+             
               return 0;
             }
           });
           
-          // TableContainer'ı temizle
+
           const tableContainer = $(".table-container");
           tableContainer.empty();
           
-          // Basit HTML tablosu oluştur
+   
           let tableHTML = `
             <table class="score-table" style="width:100%; border-collapse:collapse; margin-top:20px;">
               <thead>
@@ -534,8 +533,7 @@
               </tbody>
             </table>
           `;
-          
-          // Tabloyu container'a ekle
+ 
           tableContainer.html(tableHTML);
           
           console.log("Table rendered successfully with", filteredScores.length, "scores");
@@ -580,7 +578,7 @@
       <div class="statistics-container"></div>
       
       <div class="table-container">
-        <!-- Tablo JavaScript tarafından oluşturulacak -->
+    
       </div>
 
      

@@ -59,7 +59,7 @@
       border-radius: 4px;
     }
     
-    /* Feedback animation */
+ 
     #feedback-container {
       display: none;
       position: fixed;
@@ -205,7 +205,7 @@
           <button type="submit" id="submit-btn">Send</button>
         </form>
         
-        <!-- Success animation div -->
+    
         <div id="success-animation" class="success-animation" style="display: none;">
           <div class="success-checkmark animate__animated animate__bounceIn">✓</div>
           <p class="animate__animated animate__fadeIn">Your message has been sent successfully!</p>
@@ -218,7 +218,7 @@
     <p>&copy; 2025 Code Quiz Challenge</p>
   </footer>
   
-  <!-- Feedback Modal -->
+ 
   <div id="feedback-container">
     <div class="feedback-content">
       <div class="feedback-icon">✅</div>
@@ -309,16 +309,16 @@
             responseDate,
             message,
             date,
-            isRead: false // Read status
+            isRead: false 
           };
 
-          // Save messages using localStorage
+       
           saveMessage(messageObj);
 
-          // Show enhanced feedback modal
+          
           showFeedbackModal(name);
           
-          // Clear and reset form
+         
           setTimeout(function() {
             form.reset();
             $("#response-date").datepicker("setDate", null);

@@ -100,21 +100,12 @@ $(document).ready(function() {
   
     
     function saveScore(username, userScore, totalQuestions) {
-        // DEVRE DIŞI - Quiz.html sayfasında daha gelişmiş bir saveScore kullanılıyor
+
         console.warn("Warning: Using deprecated saveScore function from script.js. Use the one in quiz.html instead.");
         
-        // Quiz.html'deki saveScore otomatik olarak çağrılacak, bu nedenle burada işlem yapmıyoruz
+
         return;
         
-        /* Eski kod:
-        let scores = JSON.parse(localStorage.getItem("scores")) || [];
-        scores.push({
-            username: username,
-            score: userScore,
-            total: totalQuestions,
-            date: new Date().toLocaleString()
-        });
-        localStorage.setItem("scores", JSON.stringify(scores));
-        */
+       
     }
 });

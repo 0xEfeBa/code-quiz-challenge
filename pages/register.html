@@ -52,7 +52,6 @@
         const username = $("#username").val().trim();
         const password = $("#password").val().trim();
 
-        // Debug için konsola yazdırma
         console.log("Register attempt:", { username, password });
 
         let users = JSON.parse(localStorage.getItem("users")) || [];
@@ -60,7 +59,7 @@
 
         if (users.some(user => user.username === username)) {
           $("#register-message")
-            .text("Bu kullanıcı adı zaten kullanılıyor!")
+            .text("This username is already taken!")
             .addClass("error-message")
             .removeClass("success-message");
           return;
@@ -75,7 +74,7 @@
         console.log("Updated users:", JSON.parse(localStorage.getItem("users")));
 
         $("#register-message")
-          .text("Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...")
+          .text("Registration successful! Redirecting to login page...")
           .removeClass("error-message")
           .addClass("success-message");
 
@@ -84,7 +83,6 @@
         }, 2000);
       });
 
-      // Sayfa yüklendiğinde localStorage kontrolü
       console.log("Initial users in storage:", JSON.parse(localStorage.getItem("users")));
     });
   </script>

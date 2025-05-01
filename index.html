@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Code Quiz Challenge</title>
   
-  <!-- Favicon -->
+
   <link rel="icon" href="image/favicon.ico" type="image/x-icon">
   
   <style>
@@ -55,19 +55,19 @@
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Check if user is logged in
+    
       const currentUser = localStorage.getItem("currentUser");
       
-      // Set a short timeout to allow the loading animation to be seen
+    
       setTimeout(function() {
         if (currentUser) {
-          // User is logged in, redirect to about.html
+       
           window.location.href = "pages/about.html";
         } else {
-          // User is not logged in, redirect to login.html
+       
           window.location.href = "pages/login.html";
         }
-      }, 1500); // 1.5 seconds delay for better UX
+      }, 1500); 
     });
   </script>
 </body>
