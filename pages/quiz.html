@@ -76,10 +76,19 @@
       let score = 0;
       let timerInterval;
       let timeLeft = 20;
-
-    
+      
+      // Oturum açmış kullanıcıyı kontrol et
+      const currentUser = localStorage.getItem("currentUser");
+      console.log("Current user:", currentUser); // Debug için
+      
+      if (!currentUser) {
+        alert("You must be logged in to take the quiz!");
+        window.location.href = "login.html";
+        return;
+      }
+      
       $.ajax({
-        url: " ../data/questions.json",
+        url: "../data/questions.json",
         dataType: "json",
         success: function(response) {
           multipleChoiceQuestions = response.multipleChoice;
@@ -87,7 +96,9 @@
           $("#start-btn").prop("disabled", false);
           console.log("Questions loaded");
         },
-        error: function() {
+        error: function(xhr, status, error) {
+          console.error("Error loading questions:", status, error);
+          console.error("Response:", xhr.responseText);
           alert("Error loading questions. Please refresh the page.");
         }
       });
@@ -292,14 +303,75 @@
       
      
       function saveScore(username, userScore, totalQuestions){
-          let scores = JSON.parse(localStorage.getItem("scores")) || [];
-          scores.push({
-              username: username,
-              score: userScore,
-              total: totalQuestions,
-              date: new Date().toLocaleString()
+          console.log("===== SCORE SAVE STARTED =====");
+          // Test amaçlı olarak önce localStorage'daki mevcut tüm değerleri kontrol edelim
+          Object.keys(localStorage).forEach(key => {
+              console.log(`localStorage key: ${key}, value length: ${localStorage.getItem(key)?.length || 0} characters`);
           });
-          localStorage.setItem("scores", JSON.stringify(scores));
+          
+          try {
+              // Önce localStorage'dan mevcut skorları alalım
+              let existingScores = localStorage.getItem("scores");
+              console.log("Raw existing scores from localStorage:", existingScores);
+              
+              // Mevcut skorları ayrıştırmaya çalışalım
+              let scores = [];
+              if (existingScores) {
+                  try {
+                      scores = JSON.parse(existingScores);
+                      console.log("Successfully parsed existing scores:", scores);
+                      
+                      // Geçerli bir dizi değilse sıfırlayalım
+                      if (!Array.isArray(scores)) {
+                          console.warn("Parsed scores is not an array, resetting");
+                          scores = [];
+                      } else {
+                          console.log("Current scores count:", scores.length);
+                      }
+                  } catch (e) {
+                      console.error("Error parsing existing scores, resetting:", e);
+                      scores = [];
+                  }
+              } else {
+                  console.log("No existing scores found, starting with empty array");
+              }
+              
+              // Yeni skoru oluşturalım
+              const newScore = {
+                  username: username,
+                  score: parseInt(userScore, 10),
+                  total: parseInt(totalQuestions, 10),
+                  date: new Date().toLocaleString('tr-TR')
+              };
+              console.log("New score to add:", newScore);
+              
+              // Yeni skoru ekleyelim
+              scores.push(newScore);
+              console.log("Updated scores array:", scores);
+              console.log("New total count:", scores.length);
+              
+              // localStorage'a kaydedelim
+              localStorage.removeItem("scores"); // Önce eski değeri temizleyelim
+              localStorage.setItem("scores", JSON.stringify(scores));
+              console.log("Scores saved to localStorage");
+              
+              // Doğrulama
+              let verifyScores = localStorage.getItem("scores");
+              console.log("Verification - Raw scores from localStorage:", verifyScores);
+              
+              try {
+                  let parsedVerify = JSON.parse(verifyScores);
+                  console.log("Verification - Parsed scores:", parsedVerify);
+                  console.log("Verification - Scores count:", parsedVerify.length);
+              } catch (e) {
+                  console.error("Verification failed - could not parse scores:", e);
+              }
+              
+              console.log("===== SCORE SAVE COMPLETED =====");
+          } catch (e) {
+              console.error("Fatal error during score save:", e);
+              alert("Error saving your score: " + e.message);
+          }
       }
     });
   </script>
